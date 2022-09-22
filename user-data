@@ -1,0 +1,43 @@
+#cloud-config
+autoinstall:
+  version: 1
+  updates: security
+  apt:
+    disable_suites: [security]
+  package_update: false
+  package_upgrade: false
+  locale: de_DE.UTF-8
+  keyboard:
+    layout: de
+  identity:
+    hostname: memorebox
+    password: "$6$16$Zu3SOhOgJ1h.SZywx.YFk8pCK4P.dgE.DvC2j/WrqTV217YRmTfs5FT.xgmtGopR7Ndar6XRvVdExdZ.LnMG8."
+    username: memore
+  ssh:
+    install-server: true
+  late-commands:
+    - mkdir -p "/target/etc/systemd/system/getty@tty1.service.d"
+    - |
+      tee -a "/target/etc/systemd/system/getty@tty1.service.d/override.conf" <<EOF
+      [Service]
+      Type=idle
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin memore --noclear %I 38400 linux
+      EOF
+    - mkdir -p "/target/var/log/memore"
+    - |
+      tee -a "/target/var/log/memore/memoreBox_info" <<EOF
+      Image
+      	Ubuntu 20.04
+      	memoreOS-1-5
+      EOF
+    - mkdir -p "/target/var/tmp/memore"
+    - wget "http://bootserver.retrobrain.net/ipxe/memoreOS/memore-post-install.sh" -O "/target/var/tmp/memore/memore-post-install.sh"
+    - chmod 511 "/target/var/tmp/memore/memore-post-install.sh"
+    - wget "http://bootserver.retrobrain.net/ipxe/memoreOS/memore-pre-install.sh" -O "/target/var/tmp/memore/memore-pre-install.sh"
+    - chmod 511 "/target/var/tmp/memore/memore-pre-install.sh"
+  user-data:
+    timezone: Europe/Berlin
+  #user-data: # Commands here run during first boot (cannot be interactive)
+    #runcmd:
+      #- [bash, -c, "/var/tmp/memore/memore-startup.sh"]
